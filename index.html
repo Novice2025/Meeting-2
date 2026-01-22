@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXTATION | Interactive Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+        :root {
+            --bg-main: #02030b;
+            --bg-gradient: radial-gradient(circle at top, #1c1f3b 0%, #050716 45%, #02030b 100%);
+            --card-bg: rgba(15, 18, 40, 0.92);
+            --accent-cyan: #4ef2ff;
+            --accent-pink: #ff2f92;
+            --accent-green: #4dff9b;
+            --accent-yellow: #ffe25f;
+            --accent-purple: #aa5dff;
+            --accent-red: #ff4d4d;
+            --border-glow: rgba(120, 120, 255, 0.45);
+            --text-main: #ffffff;
+            --text-subtle: rgba(255, 255, 255, 0.65);
+        }
+
+        body {
+            background: var(--bg-main);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .neon-line {
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink), var(--accent-yellow), var(--accent-green));
+            box-shadow: 0 0 15px var(--accent-cyan);
+            animation: pulse-width 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse-width {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; filter: brightness(1.2); }
+        }
+
+        .teacher-orb {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--accent-cyan) 40%, var(--accent-pink) 100%);
+            box-shadow: 0 0 20px var(--accent-cyan), inset 0 0 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .teacher-orb:hover { transform: scale(1.1) rotate(5deg); }
+
+        .next-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 22px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            color: var(--text-subtle);
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .tab-btn.active {
+            background: rgba(78, 242, 255, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .tab-btn.completed { border-color: var(--accent-green); color: var(--accent-green); }
+
+        .lesson-selector {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 5px;
+            border-radius: 50px;
+            border: 1px solid var(--border-glow);
+            overflow-x: auto;
+            max-width: 100%;
+            scrollbar-width: none;
+        }
+        .lesson-selector::-webkit-scrollbar { display: none; }
+
+        .lesson-pill {
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-subtle);
+            white-space: nowrap;
+        }
+
+        .lesson-pill.active { background: var(--accent-pink); color: #fff; }
+
+        .neon-input {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid var(--border-glow);
+            border-radius: 12px;
+            color: white;
+            padding: 15px;
+            width: 100%;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-cyan));
+            color: #050618;
+            font-weight: 800;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+
+        .scenario-card {
+            background: linear-gradient(145deg, rgba(170, 93, 255, 0.1), rgba(255, 47, 146, 0.1));
+            border: 1px solid rgba(170, 93, 255, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .language-note-box {
+            border-left: 4px solid var(--accent-yellow);
+            background: rgba(255, 226, 95, 0.05);
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            border-radius: 0 12px 12px 0;
+            font-size: 0.9rem;
+            color: var(--accent-yellow);
+            text-align: left;
+        }
+
+        .warning-box {
+            border-left: 4px solid var(--accent-red);
+            background: rgba(255, 77, 77, 0.1);
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0 12px 12px 0;
+            font-size: 0.85rem;
+            color: #ff8080;
+            font-weight: 700;
+        }
+
+        /* Matching Game */
+        .matching-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-glow);
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .matching-item.selected { border-color: var(--accent-cyan); background: rgba(78, 242, 255, 0.1); }
+        .matching-item.matched { border-color: var(--accent-green); background: rgba(77, 255, 155, 0.1); opacity: 0.5; pointer-events: none; }
+
+        /* Situation Buttons */
+        .situation-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            animation: pulse-border 2s infinite alternate;
+        }
+        @keyframes pulse-border {
+            from { box-shadow: 0 0 5px currentColor; }
+            to { box-shadow: 0 0 15px currentColor; }
+        }
+
+        .sit-casual-work { background: #4dff9b; color: #02030b; }
+        .sit-real-life { background: #ffe25f; color: #02030b; }
+        .sit-chat { background: #4ef2ff; color: #02030b; }
+        .sit-emails { background: #aa5dff; color: #fff; }
+        .sit-meetings { background: #ff2f92; color: #fff; }
+        .sit-strategic { background: #ff4d4d; color: #fff; }
+        .sit-all-hands { background: #4d88ff; color: #fff; }
+        .sit-high-stakes { background: #ff7700; color: #fff; }
+        .sit-reviews { background: #00d4ff; color: #02030b; }
+
+        .red-gradient-text {
+            background: linear-gradient(90deg, #ff4d4d, #f44336);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .scenario-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px dashed var(--accent-cyan);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="flex flex-col gap-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="teacher-orb" id="teacherOrb"></div>
+                    <div>
+                        <h1 class="text-2xl font-black tracking-tighter" style="color: var(--accent-cyan);">NEXTATION</h1>
+                        <p class="text-[10px] uppercase tracking-[0.2em] text-pink-500 font-bold">Neural Language Interface</p>
+                    </div>
+                </div>
+                <div class="lesson-selector" id="lessonPills"></div>
+            </div>
+
+            <div class="text-center">
+                <h2 class="text-xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 uppercase">Lego Disruptive Chain Method by Daby</h2>
+                <p class="text-cyan-400 font-bold text-xs mt-2 uppercase">Teach you how & what to say in Meetings and presentations</p>
+            </div>
+
+            <div class="text-center md:text-left mt-4">
+                <p id="sectionLabel" class="text-xs font-bold text-cyan-400 mb-1 tracking-widest uppercase"></p>
+                <h2 id="mainHeading" class="text-3xl font-extrabold tracking-tight" style="color: var(--accent-yellow);"></h2>
+                <p class="red-gradient-text text-sm mt-2">Core Expressions</p>
+            </div>
+        </header>
+
+        <div class="neon-line mb-8"></div>
+
+        <nav class="flex flex-wrap gap-2 mb-8 justify-center">
+            <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn active">1. EXPRESSION</button>
+            <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn">2. WHEN TO USE</button>
+            <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn">3. SITUATIONS</button>
+            <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn">4. WRITE</button>
+            <button onclick="switchTab(5)" id="tab-btn-5" class="tab-btn">5. AUDIO</button>
+            <button onclick="switchTab(6)" id="tab-btn-6" class="tab-btn">6. PRACTICE</button>
+        </nav>
+
+        <main class="next-card p-6 md:p-10 min-h-[480px]">
+            <!-- TAB 1 -->
+            <section id="tab-1" class="tab-content active text-center">
+                <h2 class="text-2xl font-bold mb-6" style="color: var(--accent-cyan);">What's the phrase?</h2>
+                <div class="max-w-md mx-auto space-y-4">
+                    <input type="text" id="expressionInput" class="neon-input text-xl md:text-2xl text-center font-bold" readonly>
+                    <button onclick="lockExpression()" class="btn-primary w-full mt-4">LOCK EXPRESSION 🔒</button>
+                    <p id="lockStatus" class="text-sm mt-4 text-green-400 hidden">Saved to your neural drive!</p>
+                </div>
+                <div id="expressionTip" class="mt-8 text-sm text-gray-500 uppercase tracking-widest"></div>
+                <div id="ruleNote" class="warning-box hidden"></div>
+            </section>
+
+            <!-- TAB 2 -->
+            <section id="tab-2" class="tab-content text-center">
+                <h2 class="text-2xl font-bold mb-6" style="color: var(--accent-pink);">Meaning & Context</h2>
+                <div class="bg-black/40 p-6 rounded-xl border border-pink-500/30">
+                    <p id="meaningText" class="text-xl font-semibold mb-4 text-white"></p>
+                    <p id="contextText" class="text-gray-400 text-lg text-left leading-relaxed"></p>
+                    <div id="brazilianNote" class="language-note-box"></div>
+                </div>
+                <div class="flex flex-wrap gap-3 justify-center mt-6" id="situationContainer"></div>
+            </section>
+
+            <!-- TAB 3 -->
+            <section id="tab-3" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--accent-purple);">Where to use it?</h2>
+                <div id="scenarioGrid" class="scenario-grid"></div>
+                <div class="scenario-box">
+                    <h3 class="text-cyan-400 font-bold uppercase text-xs mb-2">Visualizing the Scenario:</h3>
+                    <p id="visualScenario" class="text-sm text-gray-300 leading-relaxed italic"></p>
+                </div>
+                <div id="exampleUsage" class="mt-8 p-4 bg-purple-500/5 border border-purple-500/20 rounded-lg italic text-center text-gray-400"></div>
+            </section>
+
+            <!-- TAB 4 -->
+            <section id="tab-4" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6" style="color: var(--accent-yellow);">Write your sequence</h2>
+                <p id="writingChallenge" class="text-sm text-gray-400 mb-4 font-semibold uppercase tracking-wider"></p>
+                <textarea id="practiceWrite" class="neon-input h-48 resize-none text-lg" placeholder="Type your sentence here..."></textarea>
+                <div class="mt-4 flex justify-between items-center">
+                    <span class="text-xs text-gray-500">Auto-sync active...</span>
+                    <button onclick="completeTab(4)" class="text-green-400 text-xs font-bold uppercase">Mark Completed ✓</button>
+                </div>
+            </section>
+
+            <!-- TAB 5 -->
+            <section id="tab-5" class="tab-content text-center">
+                <h2 class="text-2xl font-bold mb-6" style="color: var(--accent-green);">Neural Audio Check</h2>
+                <div class="flex flex-col items-center justify-center space-y-6">
+                    <span class="text-6xl">🗣️</span>
+                    <p id="audioInstruction" class="text-xl font-bold text-gray-300"></p>
+                    <button onclick="speakCurrent()" class="btn-primary flex items-center gap-3 px-8 py-4">
+                        <span>PLAY REFERENCE</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- TAB 6 -->
+            <section id="tab-6" class="tab-content text-center">
+                <h2 class="text-2xl font-bold mb-6" style="color: var(--accent-red);">Match the Pairs!</h2>
+                <div id="matchBoard" class="grid grid-cols-2 gap-3 max-w-xl mx-auto"></div>
+                <div id="matchFeedback" class="mt-4 text-sm font-bold h-6"></div>
+                <button onclick="initMatchGame()" class="mt-4 text-[10px] text-gray-500 underline uppercase">Reset Game</button>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const lessons = {
+            1: { 
+                id: 'can-you-hear', 
+                label: 'Stage 00: Technical Check', 
+                section: 'Technical verification in meetings', 
+                expression: 'Can you hear?', 
+                meaning: '"A direct check for audio connectivity."', 
+                context: 'This is the ONLY phrase you should use to check audio. Other expressions like "Are you listening?" or "Is my mic on?" sound unnatural or rude.', 
+                tip: 'Tip: Always use this specific phrase. Never use variations.', 
+                rule: 'CRITICAL RULE: We can never use other expressions to check audio. Stick to "Can you hear?" exclusively.',
+                brazilianNote: 'Note: In Brazil, we often say "Estão me ouvindo?", but in English, keep it short: "Can you hear?".', 
+                scenarios: [{icon:'🎧', title:'Joining Call', desc:'First words when joining a Zoom/Teams meeting.'}, {icon:'🔇', title:'Unmuting', desc:'After being on mute for a while.'}], 
+                example: '"Hi guys, can you hear? Great, let\'s start."', 
+                challenge: 'Start your next online meeting by verifying your audio correctly.', 
+                audioInstruction: 'Say "Can you hear?" with a slight rising inflection.', 
+                situations: ['conventions-meetings', 'messages-chat'], 
+                matches: [['Can you hear?', 'Você consegue ouvir?'], ['Connection', 'Conexão'], ["Check", "Verificação"]] 
+            },
+            2: { id: 'im-with-you', label: 'Stage 00: Engagement', section: 'Active Listening', expression: "I'm with you.", meaning: '"Showing agreement and focus."', context: 'Use this to confirm you understand the point being made.', tip: 'Tip: Use while nodding.', brazilianNote: 'Note: "Estou te acompanhando."', scenarios: [{icon:'✅', title:'Agreeing', desc:'Confirming a logical point.'}], example: '"Yes, I am with you on that plan."', challenge: 'Respond to a colleague using this.', audioInstruction: 'Smooth, supportive tone.', situations: ['casual-work', 'conventions-meetings'], matches: [['I am with you', 'Estou com você'], ['Agreement', 'Acordo'], ['Focus', 'Foco']] },
+            3: { id: 'go-ahead', label: 'Stage 00: Flow', section: 'Giving Permission', expression: 'Go ahead.', meaning: '"Inviting someone to speak or proceed."', context: 'When two people speak at once.', tip: 'Tip: Brief and polite.', brazilianNote: 'Note: "Pode falar/prosseguir."', scenarios: [{icon:'➡️', title:'Yielding', desc:'Letting another finish their thought.'}], example: '"Sorry, go ahead."', challenge: 'Practice yielding floor in a mock call.', audioInstruction: 'Quick and decisive.', situations: ['conventions-meetings', 'casual-work'], matches: [['Go ahead', 'Vá em frente'], ['Proceed', 'Prosseguir'], ['Permission', 'Permissão']] },
+            4: { id: 'got-it', label: 'Stage 00: Confirmation', section: 'Acknowledge Instruction', expression: 'Got it.', meaning: '"Informal confirmation of understanding."', context: 'Quick replies to small tasks.', tip: 'Tip: Use sparingly in formal settings.', brazilianNote: 'Note: "Entendido."', scenarios: [{icon:'👌', title:'Quick Task', desc:'Confirmed receipt of a link.'}], example: '"Check the chat." "Got it."', challenge: 'Use this in a Slack/Teams message today.', audioInstruction: 'Short and punchy.', situations: ['messages-chat', 'casual-work'], matches: [['Got it', 'Entendi'], ['Understand', 'Entender'], ['Confirmed', 'Confirmado']] },
+            5: { id: 'fair-enough', label: 'Stage 00: Acceptance', section: 'Logical Concession', expression: 'Fair enough.', meaning: '"Acknowledging a valid but different point."', context: 'When you accept an explanation.', tip: 'Tip: Sounds very professional.', brazilianNote: 'Note: "Faz sentido / Justo."', scenarios: [{icon:'⚖️', title:'Compromise', desc:'Accepting a deadline change.'}], example: '"It will take longer." "Fair enough."', challenge: 'Accept a logical counter-argument.', audioInstruction: 'Balanced, calm tone.', situations: ['conventions-meetings', 'high-stakes'], matches: [['Fair enough', 'Justo / Faz sentido'], ['Valid', 'Válido'], ['Logic', 'Lógica']] },
+            6: { id: 'makes-sense', label: 'Stage 00: Validation', section: 'Logical Confirmation', expression: 'Makes sense.', meaning: '"Confirming clarity of information."', context: 'After a complex explanation.', tip: 'Tip: Standard business filler.', brazilianNote: 'Note: "Faz sentido."', scenarios: [{icon:'🧠', title:'Briefing', desc:'After hearing a project scope.'}], example: '"So we pivot now?" "Makes sense."', challenge: 'Confirm a workflow with this phrase.', audioInstruction: 'Nodding rhythm.', situations: ['conventions-meetings', 'casual-work'], matches: [['Makes sense', 'Faz sentido'], ['Clarity', 'Clareza'], ['Logic', 'Lógica']] },
+            7: { 
+                id: 'i-am-late', 
+                label: 'Stage 01: Greetings', 
+                section: 'Physical Presence Punctuality', 
+                expression: 'I am late.', 
+                meaning: '"A direct and honest statement of status upon arrival."', 
+                context: 'Only say this when you are present. Doing it before creates unnecessary anxiety.', 
+                tip: 'Tip: Only say this once your camera is ON or feet are in the room.', 
+                rule: 'FACT: Stating this upon arrival is professional. Texting it before sounds like an excuse.',
+                brazilianNote: 'Note: In Brazil, we text early. Globally, we state it when we join.', 
+                scenarios: [{icon:'📍', title:'At the Door', desc:'Entering late.'}], 
+                example: '"Hi everyone. I am late. Let\'s continue."', 
+                challenge: 'Wait until you arrive to state your delay.', 
+                audioInstruction: 'Flat, factual intonation.', 
+                situations: ['conventions-meetings', 'casual-work'], 
+                matches: [['I am late', 'Estou atrasado'], ['Arrival', 'Chegada'], ['Status', 'Status']] 
+            },
+            8: { 
+                id: 'i-am-running-late', 
+                label: 'Stage 01: Greetings', 
+                section: 'Proactive Delay Management', 
+                expression: 'I am running late.', 
+                meaning: '"A notification that you will not arrive on time."', 
+                context: 'Use this BEFORE the meeting starts. It shows awareness of time.', 
+                tip: 'Tip: Send this 5-10 minutes before the start.', 
+                rule: 'RULE: Silence is worse than the delay. Announcing it proactively builds trust.',
+                brazilianNote: 'Note: Don\'t hide in guilt. Use this via Slack/WhatsApp.', 
+                scenarios: [{icon:'🏃', title:'In Transit', desc:'Texting ahead.'}], 
+                example: '"Team, I am running late. Start without me."', 
+                challenge: 'Send this the moment you see a delay coming.', 
+                audioInstruction: 'Stress the word "running".', 
+                situations: ['messages-chat', 'casual-work'], 
+                matches: [['Running late', 'Atrasado (em processo)'], ['Proactive', 'Proativo'], ['Notification', 'Notificação']] 
+            },
+            9: { 
+                id: 'bear-with-me', 
+                label: 'Stage 01: Greetings', 
+                section: 'High-Level Delay Management', 
+                expression: 'I am running late. Please bear with me a moment.', 
+                meaning: '"A sophisticated request for grace while you finalize your setup."', 
+                context: 'Bright Explanation for "Bear with me": 1. Elegance: It is a refined invitation to wait. 2. Space Creation: It buys you 30 seconds of professional silence. 3. Authority: It signals you are in control. It is NOT about a "bear" (the animal), but the verb "to bear" (support/endure). You are asking the team to support the silence while you prepare.', 
+                tip: 'Tip: Use the moment you enter the call to buy "Setup Time."', 
+                rule: 'BRIGHT EXPLANATION: "Bear with me" is a power move. It doesn\'t ask for permission; it politely instructs the audience on how to behave while you get ready.',
+                brazilianNote: 'Note: NEVER translate as "Urso comigo." It means "Aguarde um instante com paciência enquanto me organizo."', 
+                scenarios: [{icon:'📁', title:'File Loading', desc:'Opening PPT after joining.'}, {icon:'📋', title:'Reviews', desc:'Gathering notes during a 1:1 performance review.'}], 
+                visualScenario: 'Picture this: You join a high-stakes call with a Director. You are 2 minutes late. Instead of stuttering an apology, you smile and say: "Hi! I am running late. Please bear with me a moment while I pull up the presentation." You look like an executive in control, not a panicked employee.',
+                example: '"Hi everyone. I am running late. Please bear with me a moment while I fix my mic."', 
+                challenge: 'Practice the full phrase in one fluid breath.', 
+                audioInstruction: 'Soft and steady. Emphasize "bear".', 
+                situations: ['conventions-meetings', 'high-stakes', 'reviews'], 
+                matches: [['Bear with me', 'Tenha paciência / Aguarde'], ['Running late', 'A caminho (atrasado)'], ['Moment', 'Instante']] 
+            },
+            10: { 
+                id: 'town-hall', 
+                label: 'Stage 02: Strategic Openings', 
+                section: 'High-Stakes Leadership Greetings', 
+                expression: 'Thank you for joining our town hall.', 
+                meaning: '"A formal opening for a company-wide update."', 
+                context: 'Bright Explanation for "Joining" vs "Attending" & "Town Hall": 1. The Power of "Joining": In Brazil, we might say "attending," but "Joining" implies active participation. You aren\'t just a spectator; you are part of the movement. 2. The Meaning of "Town Hall": Originally, this was the central village gathering where important news was shared. Today, it signals a critical meeting where leadership shares the vision. Calling it a "Town Hall" instead of just a "meeting" makes it sound legendary, transparent, and authoritative.', 
+                tip: 'Tip: Use for large group gatherings to establish "One Team" energy.', 
+                rule: 'FACT: In Global Business, calling a big update a "Town Hall" signals critical information and transparency. It builds trust instantly.',
+                brazilianNote: 'Note: We often say "All-Hands" or "Reunião Geral," but "Town Hall" is the global gold standard for leadership communication.', 
+                scenarios: [{icon:'📢', title:'CEO Update', desc:'Opening a company-wide broadcast.'}, {icon:'🏗️', title:'Strategic Pivot', desc:'Welcoming the company to a new direction.'}], 
+                visualScenario: 'Picture this: 200 people are waiting in a digital lobby. The host appears and says: "Good morning everyone. Thank you for joining our town hall today." The atmosphere shifts immediately—the room goes silent and respectful. This phrase transforms a "general chat" into a significant corporate event.',
+                example: '"Thank you for joining our town hall. We have exciting updates for Q4."', 
+                challenge: 'Next time you host a team-wide update, call it a "Town Hall" to elevate the gravity of the meeting.', 
+                audioInstruction: 'Authoritative and steady. Stress "Joining" and "Town Hall".', 
+                situations: ['conventions-meetings', 'strategic', 'all-hands'], 
+                matches: [['Town Hall', 'Reunião de Transparência'], ['Joining', 'Participando'], ['All-hands', 'Equipe Inteira']] 
+            }
+        };
+
+        const sitConfig = {
+            'casual-work': { cls: 'sit-casual-work', label: 'Casual @ Work' },
+            'casual-real-life': { cls: 'sit-real-life', label: 'Real Life' },
+            'messages-chat': { cls: 'sit-chat', label: 'Messages & Chat' },
+            'emails': { cls: 'sit-emails', label: 'Emails' },
+            'conventions-meetings': { cls: 'sit-meetings', label: 'Conventions' },
+            'high-stakes': { cls: 'sit-high-stakes', label: 'Critical Presentation' },
+            'reviews': { cls: 'sit-reviews', label: 'Performance Review' },
+            'strategic': { cls: 'sit-strategic', label: 'Strategic Update' },
+            'all-hands': { cls: 'sit-all-hands', label: 'All-Hands Meeting' }
+        };
+
+        let currentId = 1;
+        let selectedMatch = null;
+
+        function init() {
+            const container = document.getElementById('lessonPills');
+            Object.keys(lessons).forEach(key => {
+                const p = document.createElement('div');
+                p.className = 'lesson-pill';
+                p.id = `pill-${key}`;
+                p.textContent = `Exp ${key.toString().padStart(2, '0')}`;
+                p.onclick = () => loadLesson(key);
+                container.appendChild(p);
+            });
+            loadLesson(1);
+        }
+
+        function loadLesson(id) {
+            currentId = id;
+            const data = lessons[id];
+            
+            document.querySelectorAll('.lesson-pill').forEach(p => p.classList.toggle('active', p.id === `pill-${id}`));
+            document.getElementById('sectionLabel').textContent = data.label;
+            document.getElementById('mainHeading').textContent = data.section;
+            document.getElementById('expressionInput').value = data.expression;
+            document.getElementById('expressionTip').textContent = data.tip;
+            document.getElementById('meaningText').textContent = data.meaning;
+            
+            const contextEl = document.getElementById('contextText');
+            if (data.context.includes('1.')) {
+                contextEl.innerHTML = data.context.split(/(\d\.)/).map(part => {
+                    return part.match(/\d\./) ? `<br><br><strong>${part}</strong>` : part;
+                }).join('');
+            } else {
+                contextEl.textContent = data.context;
+            }
+            
+            document.getElementById('brazilianNote').textContent = data.brazilianNote;
+            document.getElementById('writingChallenge').textContent = data.challenge;
+            document.getElementById('audioInstruction').textContent = data.audioInstruction;
+            document.getElementById('exampleUsage').textContent = data.example;
+            
+            const visualEl = document.getElementById('visualScenario');
+            if (data.visualScenario) {
+                visualEl.parentElement.classList.remove('hidden');
+                visualEl.textContent = data.visualScenario;
+            } else {
+                visualEl.parentElement.classList.add('hidden');
+            }
+
+            const ruleBox = document.getElementById('ruleNote');
+            if (data.rule) {
+                ruleBox.textContent = data.rule;
+                ruleBox.classList.remove('hidden');
+            } else {
+                ruleBox.classList.add('hidden');
+            }
+
+            const sitCont = document.getElementById('situationContainer');
+            sitCont.innerHTML = '';
+            data.situations.forEach(s => {
+                const cfg = sitConfig[s];
+                if (cfg) sitCont.innerHTML += `<div class="situation-btn ${cfg.cls}">${cfg.label}</div>`;
+            });
+
+            const scCont = document.getElementById('scenarioGrid');
+            scCont.innerHTML = data.scenarios.map(s => `
+                <div class="scenario-card">
+                    <span class="text-3xl block mb-2">${s.icon}</span>
+                    <h4 class="font-bold text-cyan-400 text-sm">${s.title}</h4>
+                    <p class="text-[10px] text-gray-400 mt-1">${s.desc}</p>
+                </div>
+            `).join('');
+
+            initMatchGame();
+            switchTab(1);
+        }
+
+        function switchTab(num) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${num}`).classList.add('active');
+            document.getElementById(`tab-btn-${num}`).classList.add('active');
+        }
+
+        function lockExpression() {
+            const s = document.getElementById('lockStatus');
+            s.classList.remove('hidden');
+            document.getElementById('tab-btn-1').classList.add('completed');
+            setTimeout(() => s.classList.add('hidden'), 2000);
+        }
+
+        function completeTab(n) {
+            document.getElementById(`tab-btn-${n}`).classList.add('completed');
+        }
+
+        function speakCurrent() {
+            const utter = new SpeechSynthesisUtterance(lessons[currentId].expression);
+            utter.lang = 'en-US';
+            utter.rate = 0.95;
+            window.speechSynthesis.speak(utter);
+        }
+
+        function initMatchGame() {
+            const data = lessons[currentId];
+            const board = document.getElementById('matchBoard');
+            board.innerHTML = '';
+            document.getElementById('matchFeedback').textContent = '';
+            selectedMatch = null;
+
+            let pool = [];
+            data.matches.forEach((m, idx) => {
+                pool.push({ text: m[0], pairId: idx, type: 'en' });
+                pool.push({ text: m[1], pairId: idx, type: 'pt' });
+            });
+            pool.sort(() => Math.random() - 0.5);
+
+            pool.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'matching-item';
+                div.textContent = item.text;
+                div.onclick = () => handleMatch(div, item);
+                board.appendChild(div);
+            });
+        }
+
+        function handleMatch(el, item) {
+            if (el.classList.contains('matched') || el.classList.contains('selected')) return;
+
+            if (!selectedMatch) {
+                selectedMatch = { el, item };
+                el.classList.add('selected');
+            } else {
+                if (selectedMatch.item.pairId === item.pairId && selectedMatch.item.type !== item.type) {
+                    el.classList.add('matched');
+                    selectedMatch.el.classList.add('matched');
+                    document.getElementById('matchFeedback').textContent = 'Match found! ⚡';
+                    if (document.querySelectorAll('.matching-item.matched').length === (lessons[currentId].matches.length * 2)) {
+                        document.getElementById('matchFeedback').textContent = 'Neural link stabilized! ✓';
+                        completeTab(6);
+                    }
+                } else {
+                    selectedMatch.el.classList.remove('selected');
+                    document.getElementById('matchFeedback').textContent = 'Link failed. Try again.';
+                }
+                selectedMatch = null;
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
